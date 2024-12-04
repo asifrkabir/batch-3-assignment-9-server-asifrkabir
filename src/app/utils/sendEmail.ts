@@ -20,7 +20,7 @@ export const sendResetPasswordEmail = async (to: string, html: string) => {
     const mailData = {
       from: config.nodemailer_email,
       to,
-      subject: "Reset Password | Pawfect",
+      subject: "Reset Password | ShopSphere",
       text: "Reset your password within 10 minutes.",
       html,
     };
