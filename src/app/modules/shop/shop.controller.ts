@@ -4,6 +4,28 @@ import catchAsync from "../../utils/catchAsync";
 import sendResponse from "../../utils/sendResponse";
 import { ShopService } from "./shop.service";
 
+const getShopByOwnerId = catchAsync(async (req, res) => {
+  const { userId } = req.user;
+
+  const result = await ShopService.getShopByOwnerId(userId);
+
+  if (result) {
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Shop retrieved successfully by Owner ID",
+      data: result,
+    });
+  } else {
+    sendResponse(res, {
+      statusCode: httpStatus.NOT_FOUND,
+      success: false,
+      message: "No Data Found",
+      data: result,
+    });
+  }
+});
+
 const getShopById = catchAsync(async (req, res) => {
   const { id } = req.params;
 
@@ -44,6 +66,7 @@ const createShop = catchAsync(async (req, res) => {
 });
 
 export const ShopController = {
-  createShop,
   getShopById,
+  getShopByOwnerId,
+  createShop,
 };

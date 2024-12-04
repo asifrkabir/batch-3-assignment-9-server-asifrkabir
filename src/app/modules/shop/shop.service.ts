@@ -5,6 +5,21 @@ import { getExistingUserById } from "../user/user.utils";
 import { TShop } from "./shop.interface";
 import { Shop } from "./shop.model";
 
+const getShopByOwnerId = async (ownerId: string) => {
+  const existingOwner = await getExistingUserById(ownerId);
+
+  if (!existingOwner) {
+    throw new AppError(httpStatus.NOT_FOUND, "Owner not found");
+  }
+
+  const result = await Shop.findOne({
+    owner: existingOwner._id,
+    isActive: true,
+  });
+
+  return result;
+};
+
 const getShopById = async (id: string) => {
   const result = await Shop.findOne({ _id: id, isActive: true });
 
@@ -36,6 +51,7 @@ const createShop = async (
 };
 
 export const ShopService = {
-  createShop,
   getShopById,
+  getShopByOwnerId,
+  createShop,
 };

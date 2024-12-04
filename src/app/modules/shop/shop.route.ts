@@ -12,6 +12,12 @@ import { ShopController } from "./shop.controller";
 const router = Router();
 
 router.get(
+  "/by-owner",
+  auth(USER_ROLE_ENUM.admin, USER_ROLE_ENUM.vendor),
+  ShopController.getShopByOwnerId
+);
+
+router.get(
   "/:id",
   auth(USER_ROLE_ENUM.admin, USER_ROLE_ENUM.user, USER_ROLE_ENUM.vendor),
   ShopController.getShopById
