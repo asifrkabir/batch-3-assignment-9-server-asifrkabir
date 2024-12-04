@@ -5,6 +5,12 @@ import { getExistingUserById } from "../user/user.utils";
 import { TShop } from "./shop.interface";
 import { Shop } from "./shop.model";
 
+const getShopById = async (id: string) => {
+  const result = await Shop.findOne({ _id: id, isActive: true });
+
+  return result;
+};
+
 const createShop = async (
   ownerId: string,
   payload: TShop,
@@ -31,4 +37,5 @@ const createShop = async (
 
 export const ShopService = {
   createShop,
+  getShopById,
 };
