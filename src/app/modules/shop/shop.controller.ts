@@ -4,28 +4,6 @@ import catchAsync from "../../utils/catchAsync";
 import sendResponse from "../../utils/sendResponse";
 import { ShopService } from "./shop.service";
 
-const getShopByOwnerId = catchAsync(async (req, res) => {
-  const { userId } = req.user;
-
-  const result = await ShopService.getShopByOwnerId(userId);
-
-  if (result) {
-    sendResponse(res, {
-      statusCode: httpStatus.OK,
-      success: true,
-      message: "Shop retrieved successfully by Owner ID",
-      data: result,
-    });
-  } else {
-    sendResponse(res, {
-      statusCode: httpStatus.NOT_FOUND,
-      success: false,
-      message: "No Data Found",
-      data: result,
-    });
-  }
-});
-
 const getShopById = catchAsync(async (req, res) => {
   const { id } = req.params;
 
@@ -48,6 +26,28 @@ const getShopById = catchAsync(async (req, res) => {
   }
 });
 
+const getAllShops = catchAsync(async (req, res) => {
+  const result = await ShopService.getAllShops(req.query);
+
+  if (result?.result?.length <= 0) {
+    sendResponse(res, {
+      success: false,
+      statusCode: httpStatus.OK,
+      message: "No Data Found",
+      meta: result.meta,
+      data: result?.result,
+    });
+  } else {
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.OK,
+      message: "Shops retrieved successfully",
+      meta: result.meta,
+      data: result.result,
+    });
+  }
+});
+
 const createShop = catchAsync(async (req, res) => {
   const { userId } = req.user;
 
@@ -65,8 +65,31 @@ const createShop = catchAsync(async (req, res) => {
   });
 });
 
+const getShopByOwnerId = catchAsync(async (req, res) => {
+  const { userId } = req.user;
+
+  const result = await ShopService.getShopByOwnerId(userId);
+
+  if (result) {
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Shop retrieved successfully by Owner ID",
+      data: result,
+    });
+  } else {
+    sendResponse(res, {
+      statusCode: httpStatus.NOT_FOUND,
+      success: false,
+      message: "No Data Found",
+      data: result,
+    });
+  }
+});
+
 export const ShopController = {
   getShopById,
-  getShopByOwnerId,
+  getAllShops,
   createShop,
+  getShopByOwnerId,
 };
