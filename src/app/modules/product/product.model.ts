@@ -1,5 +1,6 @@
 import { model, Schema } from "mongoose";
 import { TProduct } from "./product.interface";
+import { PRODUCT_STATUS_LIST } from "./product.constant";
 
 const productSchema = new Schema<TProduct>(
   {
@@ -38,6 +39,12 @@ const productSchema = new Schema<TProduct>(
     shop: {
       type: Schema.Types.ObjectId,
       ref: "Shop",
+      required: true,
+    },
+    status: {
+      type: String,
+      enum: PRODUCT_STATUS_LIST,
+      default: "available",
       required: true,
     },
     isActive: {

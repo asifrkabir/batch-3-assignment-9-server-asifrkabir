@@ -101,10 +101,14 @@ const deleteAllFollows = async (
   if (shopId) filter.shop = shopId;
 
   const result = await Follow.deleteMany(filter, {
-    session: session || undefined,
+    session: session,
   });
 
-  return result?.deletedCount || 0;
+  if (!result) {
+    return null;
+  }
+
+  return result.deletedCount;
 };
 
 const checkIfUserFollowsShop = async (followerId: string, shopId: string) => {

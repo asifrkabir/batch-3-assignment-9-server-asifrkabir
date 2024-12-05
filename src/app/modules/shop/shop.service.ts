@@ -9,6 +9,8 @@ import { shopSearchableFields } from "./shop.constant";
 import { getExistingShopById } from "./shop.utils";
 import mongoose from "mongoose";
 import { FollowService } from "../follow/follow.service";
+import { ProductService } from "../product/product.service";
+import { PRODUCT_STATUS_ENUM } from "../product/product.constant";
 
 const getShopById = async (id: string) => {
   const result = await Shop.findOne({ _id: id, isActive: true });
@@ -106,8 +108,6 @@ const deleteShop = async (id: string) => {
     throw new AppError(httpStatus.NOT_FOUND, "Shop not found");
   }
 
-  //TODO: Make all products inactive when shop deleted
-
   const session = await mongoose.startSession();
 
   try {
@@ -116,10 +116,41 @@ const deleteShop = async (id: string) => {
     const deletedShop = await Shop.findByIdAndUpdate(
       id,
       { isActive: false },
-      { new: true }
+      { new: true, session }
     );
 
-    await FollowService.deleteAllFollows(undefined, id, session);
+    if (!deletedShop) {
+      throw new AppError(
+        httpStatus.INTERNAL_SERVER_ERROR,
+        "Failed to delete shop"
+      );
+    }
+
+    const deleteFollowsResult = await FollowService.deleteAllFollows(
+      undefined,
+      id,
+      session
+    );
+
+    if (deleteFollowsResult === null || deleteFollowsResult === undefined) {
+      throw new AppError(
+        httpStatus.INTERNAL_SERVER_ERROR,
+        "Failed to delete associated follows"
+      );
+    }
+
+    const deleteProductsResult = await ProductService.deleteProductsByFilter(
+      undefined,
+      id,
+      session
+    );
+
+    if (deleteProductsResult === null || deleteProductsResult === undefined) {
+      throw new AppError(
+        httpStatus.INTERNAL_SERVER_ERROR,
+        "Failed to delete associated products"
+      );
+    }
 
     await session.commitTransaction();
     await session.endSession();
@@ -158,7 +189,51 @@ const toggleShopBlacklistStatus = async (
     throw new AppError(httpStatus.NOT_FOUND, "Shop not found");
   }
 
-  //TODO: Make all products inactive when shop is blacklisted
+  const session = await mongoose.startSession();
+
+  try {
+    session.startTransaction();
+
+    const blackListedShop = await Shop.findByIdAndUpdate(
+      id,
+      { isBlacklisted: isBlacklisted },
+      { new: true, session }
+    );
+
+    if (!blackListedShop) {
+      throw new AppError(
+        httpStatus.INTERNAL_SERVER_ERROR,
+        "Failed to blacklist shop"
+      );
+    }
+
+    const status = isBlacklisted
+      ? PRODUCT_STATUS_ENUM.SUSPENDED
+      : PRODUCT_STATUS_ENUM.AVAILABLE;
+
+    const toggleProductStatusResult =
+      await ProductService.toggleAllProductsStatusByShop(id, status, session);
+
+    if (
+      toggleProductStatusResult === null ||
+      toggleProductStatusResult === undefined
+    ) {
+      throw new AppError(
+        httpStatus.INTERNAL_SERVER_ERROR,
+        "Failed to update status of associated products"
+      );
+    }
+
+    await session.commitTransaction();
+    await session.endSession();
+
+    return blackListedShop;
+  } catch (error) {
+    await session.abortTransaction();
+    await session.endSession();
+
+    throw error;
+  }
 
   const result = await Shop.findByIdAndUpdate(
     id,

@@ -6,10 +6,11 @@ import { TProduct } from "./product.interface";
 import { Product } from "./product.model";
 import { getExistingProductCategoryById } from "../productCategory/productCategory.utils";
 import QueryBuilder from "../../builder/QueryBuilder";
-import { productSearchableFields } from "./product.constant";
+import { productSearchableFields, TProductStatus } from "./product.constant";
 import { getExistingProductById } from "./product.utils";
 import { getExistingUserById } from "../user/user.utils";
 import { USER_ROLE_ENUM } from "../user/user.constant";
+import { ClientSession } from "mongoose";
 
 const getProductById = async (id: string) => {
   const result = await Product.findOne({ _id: id, isActive: true });
@@ -141,10 +142,54 @@ const deleteProduct = async (id: string) => {
   return result;
 };
 
+const deleteProductsByFilter = async (
+  categoryId?: string,
+  shopId?: string,
+  session?: ClientSession
+) => {
+  const filter: Record<string, string> = {};
+  if (categoryId) filter.category = categoryId;
+  if (shopId) filter.shop = shopId;
+
+  const result = await Product.updateMany(
+    filter,
+    { isActive: false },
+    {
+      session: session,
+    }
+  );
+
+  if (!result) {
+    return null;
+  }
+
+  return result.modifiedCount;
+};
+
+const toggleAllProductsStatusByShop = async (
+  shopId: string,
+  status: TProductStatus,
+  session?: ClientSession
+) => {
+  const result = await Product.updateMany(
+    { shop: shopId },
+    { status },
+    { session }
+  );
+
+  if (!result) {
+    return null;
+  }
+
+  return result.modifiedCount;
+};
+
 export const ProductService = {
   getProductById,
   getAllProducts,
   createProduct,
   updateProduct,
   deleteProduct,
+  deleteProductsByFilter,
+  toggleAllProductsStatusByShop,
 };

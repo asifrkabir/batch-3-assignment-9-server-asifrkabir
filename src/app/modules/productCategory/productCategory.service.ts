@@ -5,6 +5,8 @@ import { productCategorySearchableFields } from "./productCategory.constant";
 import { TProductCategory } from "./productCategory.interface";
 import { ProductCategory } from "./productCategory.model";
 import { getExistingProductCategoryById } from "./productCategory.utils";
+import mongoose from "mongoose";
+import { ProductService } from "../product/product.service";
 
 const getAllProductCategories = async (query: Record<string, unknown>) => {
   const productCategoryQuery = new QueryBuilder(
@@ -56,13 +58,47 @@ const deleteProductCategory = async (id: string) => {
     throw new AppError(httpStatus.NOT_FOUND, "Product Category not found");
   }
 
-  const result = await ProductCategory.findByIdAndUpdate(
-    id,
-    { isActive: false },
-    { new: true }
-  );
+  const session = await mongoose.startSession();
 
-  return result;
+  try {
+    session.startTransaction();
+
+    const deletedProductCategory = await ProductCategory.findByIdAndUpdate(
+      id,
+      { isActive: false },
+      { new: true, session }
+    );
+
+    if (!deletedProductCategory) {
+      throw new AppError(
+        httpStatus.INTERNAL_SERVER_ERROR,
+        "Failed to delete product category"
+      );
+    }
+
+    const deleteProductsResult = await ProductService.deleteProductsByFilter(
+      id,
+      undefined,
+      session
+    );
+
+    if (deleteProductsResult === null || deleteProductsResult === undefined) {
+      throw new AppError(
+        httpStatus.INTERNAL_SERVER_ERROR,
+        "Failed to delete associated products"
+      );
+    }
+
+    await session.commitTransaction();
+    await session.endSession();
+
+    return deletedProductCategory;
+  } catch (error) {
+    await session.abortTransaction();
+    await session.endSession();
+
+    throw error;
+  }
 };
 
 export const ProductCategoryService = {

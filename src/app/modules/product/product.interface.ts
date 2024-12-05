@@ -10,5 +10,6 @@ export type TProduct = {
   onSale: boolean;
   discountedPrice?: number;
   shop: Types.ObjectId;
+  status: "available" | "suspended";
   isActive: boolean;
 };

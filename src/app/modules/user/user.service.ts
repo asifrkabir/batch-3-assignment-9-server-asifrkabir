@@ -133,7 +133,25 @@ const deleteUser = async (id: string) => {
       { new: true, session }
     );
 
-    await FollowService.deleteAllFollows(id, undefined, session);
+    if (!deletedUser) {
+      throw new AppError(
+        httpStatus.INTERNAL_SERVER_ERROR,
+        "Failed to delete user"
+      );
+    }
+
+    const deleteFollowsResult = await FollowService.deleteAllFollows(
+      id,
+      undefined,
+      session
+    );
+
+    if (deleteFollowsResult === null || deleteFollowsResult === undefined) {
+      throw new AppError(
+        httpStatus.INTERNAL_SERVER_ERROR,
+        "Failed to delete associated follows"
+      );
+    }
 
     await session.commitTransaction();
     await session.endSession();
