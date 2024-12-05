@@ -11,6 +11,12 @@ import { ProductValidations } from "./product.validation";
 
 const router = Router();
 
+router.get(
+  "/",
+  auth(USER_ROLE_ENUM.admin, USER_ROLE_ENUM.user, USER_ROLE_ENUM.vendor),
+  ProductController.getAllProducts
+);
+
 router.post(
   "/",
   auth(USER_ROLE_ENUM.admin, USER_ROLE_ENUM.vendor),
