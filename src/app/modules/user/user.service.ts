@@ -9,6 +9,7 @@ import { userSearchableFields } from "./user.constant";
 import { TUser } from "./user.interface";
 import { User } from "./user.model";
 import { encryptPassword, getExistingUserById } from "./user.utils";
+import { FollowService } from "../follow/follow.service";
 
 const getUserById = async (id: string) => {
   const result = await User.findOne({ _id: id, isActive: true }).select(
@@ -131,6 +132,8 @@ const deleteUser = async (id: string) => {
       { isActive: false },
       { new: true, session }
     );
+
+    await FollowService.deleteAllFollows(id, undefined, session);
 
     await session.commitTransaction();
     await session.endSession();

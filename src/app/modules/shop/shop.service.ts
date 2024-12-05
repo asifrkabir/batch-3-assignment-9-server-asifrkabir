@@ -7,6 +7,8 @@ import { Shop } from "./shop.model";
 import QueryBuilder from "../../builder/QueryBuilder";
 import { shopSearchableFields } from "./shop.constant";
 import { getExistingShopById } from "./shop.utils";
+import mongoose from "mongoose";
+import { FollowService } from "../follow/follow.service";
 
 const getShopById = async (id: string) => {
   const result = await Shop.findOne({ _id: id, isActive: true });
@@ -106,13 +108,29 @@ const deleteShop = async (id: string) => {
 
   //TODO: Make all products inactive when shop deleted
 
-  const result = await Shop.findByIdAndUpdate(
-    id,
-    { isActive: false },
-    { new: true }
-  );
+  const session = await mongoose.startSession();
 
-  return result;
+  try {
+    session.startTransaction();
+
+    const deletedShop = await Shop.findByIdAndUpdate(
+      id,
+      { isActive: false },
+      { new: true }
+    );
+
+    await FollowService.deleteAllFollows(undefined, id, session);
+
+    await session.commitTransaction();
+    await session.endSession();
+
+    return deletedShop;
+  } catch (error) {
+    await session.abortTransaction();
+    await session.endSession();
+
+    throw error;
+  }
 };
 
 const getShopByOwnerId = async (ownerId: string) => {
