@@ -19,6 +19,10 @@ const shopSchema = new Schema<TShop>(
       ref: "User",
       required: true,
     },
+    isBlacklisted: {
+      type: Boolean,
+      default: false,
+    },
     isActive: {
       type: Boolean,
       default: true,

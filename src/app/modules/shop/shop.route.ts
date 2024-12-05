@@ -55,4 +55,10 @@ router.delete(
   ShopController.deleteShop
 );
 
+router.patch(
+  "/blacklist/:id",
+  auth(USER_ROLE_ENUM.admin),
+  ShopController.toggleShopBlacklistStatus
+);
+
 export const ShopRoutes = router;

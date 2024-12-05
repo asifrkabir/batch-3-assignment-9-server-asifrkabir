@@ -119,6 +119,19 @@ const getShopByOwnerId = catchAsync(async (req, res) => {
   }
 });
 
+const toggleShopBlacklistStatus = catchAsync(async (req, res) => {
+  const { id } = req.params;
+
+  const result = await ShopService.toggleShopBlacklistStatus(id, req.body);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Shop blacklisted successfully",
+    data: result,
+  });
+});
+
 export const ShopController = {
   getShopById,
   getAllShops,
@@ -126,4 +139,5 @@ export const ShopController = {
   updateShop,
   deleteShop,
   getShopByOwnerId,
+  toggleShopBlacklistStatus,
 };

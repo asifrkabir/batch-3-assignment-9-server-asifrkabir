@@ -130,6 +130,27 @@ const getShopByOwnerId = async (ownerId: string) => {
   return result;
 };
 
+const toggleShopBlacklistStatus = async (
+  id: string,
+  { isBlacklisted }: { isBlacklisted: boolean }
+) => {
+  const existingShop = await getExistingShopById(id);
+
+  if (!existingShop) {
+    throw new AppError(httpStatus.NOT_FOUND, "Shop not found");
+  }
+
+  //TODO: Make all products inactive when shop is blacklisted
+
+  const result = await Shop.findByIdAndUpdate(
+    id,
+    { isBlacklisted: isBlacklisted },
+    { new: true }
+  );
+
+  return result;
+};
+
 export const ShopService = {
   getShopById,
   getAllShops,
@@ -137,4 +158,5 @@ export const ShopService = {
   updateShop,
   deleteShop,
   getShopByOwnerId,
+  toggleShopBlacklistStatus,
 };
