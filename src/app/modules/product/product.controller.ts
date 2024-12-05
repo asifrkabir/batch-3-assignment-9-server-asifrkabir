@@ -4,6 +4,28 @@ import catchAsync from "../../utils/catchAsync";
 import sendResponse from "../../utils/sendResponse";
 import { ProductService } from "./product.service";
 
+const getProductById = catchAsync(async (req, res) => {
+  const { id } = req.params;
+
+  const result = await ProductService.getProductById(id);
+
+  if (result) {
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Product retrieved successfully",
+      data: result,
+    });
+  } else {
+    sendResponse(res, {
+      statusCode: httpStatus.NOT_FOUND,
+      success: false,
+      message: "No Data Found",
+      data: result,
+    });
+  }
+});
+
 const getAllProducts = catchAsync(async (req, res) => {
   const result = await ProductService.getAllProducts(req.query);
 
@@ -41,6 +63,7 @@ const createProduct = catchAsync(async (req, res) => {
 });
 
 export const ProductController = {
+  getProductById,
   getAllProducts,
   createProduct,
 };

@@ -8,6 +8,12 @@ import { getExistingProductCategoryById } from "../productCategory/productCatego
 import QueryBuilder from "../../builder/QueryBuilder";
 import { productSearchableFields } from "./product.constant";
 
+const getProductById = async (id: string) => {
+  const result = await Product.findOne({ _id: id, isActive: true });
+
+  return result;
+};
+
 const getAllProducts = async (query: Record<string, unknown>) => {
   const productQuery = new QueryBuilder(
     Product.find({ isActive: true }).populate("shop category"),
@@ -58,6 +64,7 @@ const createProduct = async (payload: TProduct, images: TImageFiles) => {
 };
 
 export const ProductService = {
+  getProductById,
   getAllProducts,
   createProduct,
 };
