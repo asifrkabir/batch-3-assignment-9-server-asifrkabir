@@ -1,14 +1,14 @@
 import httpStatus from "http-status";
+import mongoose from "mongoose";
+import QueryBuilder from "../../builder/QueryBuilder";
+import config from "../../config";
 import AppError from "../../errors/AppError";
+import { TImageFiles } from "../../interface/image.interface";
+import { createToken } from "../auth/auth.utils";
+import { userSearchableFields } from "./user.constant";
 import { TUser } from "./user.interface";
 import { User } from "./user.model";
 import { encryptPassword, getExistingUserById } from "./user.utils";
-import { USER_ROLE_ENUM, userSearchableFields } from "./user.constant";
-import { TImageFiles } from "../../interface/image.interface";
-import QueryBuilder from "../../builder/QueryBuilder";
-import mongoose from "mongoose";
-import { createToken } from "../auth/auth.utils";
-import config from "../../config";
 
 const getUserById = async (id: string) => {
   const result = await User.findOne({ _id: id, isActive: true }).select(
@@ -55,7 +55,7 @@ const createUser = async (payload: TUser, images: TImageFiles) => {
   }
 
   payload.password = await encryptPassword(payload.password);
-  payload.role = USER_ROLE_ENUM.user;
+  // payload.role = USER_ROLE_ENUM.user;
 
   const result = await User.create(payload);
 

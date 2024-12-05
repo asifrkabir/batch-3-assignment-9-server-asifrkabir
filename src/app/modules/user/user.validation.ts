@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { USER_ROLE_LIST } from "./user.constant";
 
 const createUserValidationSchema = z.object({
   body: z.object({
@@ -18,6 +19,10 @@ const createUserValidationSchema = z.object({
         invalid_type_error: "Password must be a valid string",
       })
       .min(1, { message: "Password is required" }),
+    role: z.enum([...USER_ROLE_LIST] as [string, ...string[]], {
+      message: "Please enter a valid role",
+      required_error: "Role is required",
+    }),
     profilePicture: z
       .string({
         invalid_type_error: "Profile picture must be a valid string",
