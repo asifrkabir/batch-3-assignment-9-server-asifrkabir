@@ -125,9 +125,26 @@ const updateProduct = async (
   return result;
 };
 
+const deleteProduct = async (id: string) => {
+  const existingProduct = await getExistingProductById(id);
+
+  if (!existingProduct) {
+    throw new AppError(httpStatus.NOT_FOUND, "Product not found");
+  }
+
+  const result = await Product.findByIdAndUpdate(
+    id,
+    { isActive: false },
+    { new: true }
+  );
+
+  return result;
+};
+
 export const ProductService = {
   getProductById,
   getAllProducts,
   createProduct,
   updateProduct,
+  deleteProduct,
 };
