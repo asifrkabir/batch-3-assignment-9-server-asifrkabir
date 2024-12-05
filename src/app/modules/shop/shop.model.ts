@@ -23,6 +23,10 @@ const shopSchema = new Schema<TShop>(
       type: Boolean,
       default: false,
     },
+    followerCount: {
+      type: Number,
+      default: 0,
+    },
     isActive: {
       type: Boolean,
       default: true,

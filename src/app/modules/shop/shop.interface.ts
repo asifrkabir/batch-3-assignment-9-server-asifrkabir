@@ -6,5 +6,6 @@ export type TShop = {
   description: string;
   owner: Types.ObjectId;
   isBlacklisted: boolean;
+  followerCount: number;
   isActive: boolean;
 };
