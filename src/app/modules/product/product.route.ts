@@ -33,4 +33,14 @@ router.post(
   ProductController.createProduct
 );
 
+router.put(
+  "/:id",
+  auth(USER_ROLE_ENUM.admin, USER_ROLE_ENUM.vendor),
+  multerUpload.fields([{ name: "productImages" }]),
+  validateImageFileRequest(ImageFilesArrayZodSchema),
+  parseBody,
+  validateRequest(ProductValidations.updateProductValidationSchema),
+  ProductController.updateProduct
+);
+
 export const ProductRoutes = router;

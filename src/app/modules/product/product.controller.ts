@@ -62,8 +62,28 @@ const createProduct = catchAsync(async (req, res) => {
   });
 });
 
+const updateProduct = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const { userId } = req.user;
+
+  const result = await ProductService.updateProduct(
+    id,
+    userId,
+    req.body,
+    req.files as TImageFiles
+  );
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Product updated successfully",
+    data: result,
+  });
+});
+
 export const ProductController = {
   getProductById,
   getAllProducts,
   createProduct,
+  updateProduct,
 };
