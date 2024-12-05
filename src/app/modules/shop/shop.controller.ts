@@ -65,6 +65,25 @@ const createShop = catchAsync(async (req, res) => {
   });
 });
 
+const updateShop = catchAsync(async (req, res) => {
+  const { userId } = req.user;
+  const { id } = req.params;
+
+  const result = await ShopService.updateShop(
+    id,
+    userId,
+    req.body,
+    req.files as TImageFiles
+  );
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Shop updated successfully",
+    data: result,
+  });
+});
+
 const getShopByOwnerId = catchAsync(async (req, res) => {
   const { userId } = req.user;
 
@@ -91,5 +110,6 @@ export const ShopController = {
   getShopById,
   getAllShops,
   createShop,
+  updateShop,
   getShopByOwnerId,
 };

@@ -39,4 +39,14 @@ router.post(
   ShopController.createShop
 );
 
+router.put(
+  "/:id",
+  auth(USER_ROLE_ENUM.admin, USER_ROLE_ENUM.vendor),
+  multerUpload.fields([{ name: "logoUrls" }]),
+  validateImageFileRequest(ImageFilesArrayZodSchema),
+  parseBody,
+  validateRequest(ShopValidations.updateShopValidationSchema),
+  ShopController.updateShop
+);
+
 export const ShopRoutes = router;

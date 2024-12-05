@@ -6,6 +6,7 @@ import { TShop } from "./shop.interface";
 import { Shop } from "./shop.model";
 import QueryBuilder from "../../builder/QueryBuilder";
 import { shopSearchableFields } from "./shop.constant";
+import { getExistingShopById } from "./shop.utils";
 
 const getShopById = async (id: string) => {
   const result = await Shop.findOne({ _id: id, isActive: true });
@@ -54,6 +55,48 @@ const createShop = async (
   return result;
 };
 
+const updateShop = async (
+  shopId: string,
+  userId: string,
+  payload: Partial<TShop>,
+  images: TImageFiles
+) => {
+  const existingShop = await getExistingShopById(shopId);
+
+  if (!existingShop) {
+    throw new AppError(httpStatus.NOT_FOUND, "Shop not found");
+  }
+
+  const existingUser = await getExistingUserById(userId);
+
+  if (!existingUser) {
+    throw new AppError(httpStatus.NOT_FOUND, "User not found");
+  }
+
+  if (!existingShop.owner.equals(existingUser._id)) {
+    throw new AppError(
+      httpStatus.FORBIDDEN,
+      "You are not allowed to update this shop"
+    );
+  }
+
+  const { logoUrls } = images;
+
+  // New Logo
+  if (logoUrls && logoUrls.length > 0) {
+    payload.logoUrl = logoUrls[0]?.path;
+  } else if (payload.logoUrl === null) {
+    // Remove Logo
+    payload.logoUrl = "";
+  }
+
+  const result = await Shop.findOneAndUpdate({ _id: shopId }, payload, {
+    new: true,
+  });
+
+  return result;
+};
+
 const getShopByOwnerId = async (ownerId: string) => {
   const existingOwner = await getExistingUserById(ownerId);
 
@@ -73,5 +116,6 @@ export const ShopService = {
   getShopById,
   getAllShops,
   createShop,
+  updateShop,
   getShopByOwnerId,
 };
