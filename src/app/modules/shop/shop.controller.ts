@@ -84,6 +84,19 @@ const updateShop = catchAsync(async (req, res) => {
   });
 });
 
+const deleteShop = catchAsync(async (req, res) => {
+  const { id } = req.params;
+
+  const result = await ShopService.deleteShop(id);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Shop deleted successfully",
+    data: result,
+  });
+});
+
 const getShopByOwnerId = catchAsync(async (req, res) => {
   const { userId } = req.user;
 
@@ -111,5 +124,6 @@ export const ShopController = {
   getAllShops,
   createShop,
   updateShop,
+  deleteShop,
   getShopByOwnerId,
 };

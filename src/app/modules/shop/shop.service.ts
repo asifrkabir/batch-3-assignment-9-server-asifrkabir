@@ -97,6 +97,24 @@ const updateShop = async (
   return result;
 };
 
+const deleteShop = async (id: string) => {
+  const existingShop = await getExistingShopById(id);
+
+  if (!existingShop) {
+    throw new AppError(httpStatus.NOT_FOUND, "Shop not found");
+  }
+
+  //TODO: Make all products inactive when shop deleted
+
+  const result = await Shop.findByIdAndUpdate(
+    id,
+    { isActive: false },
+    { new: true }
+  );
+
+  return result;
+};
+
 const getShopByOwnerId = async (ownerId: string) => {
   const existingOwner = await getExistingUserById(ownerId);
 
@@ -117,5 +135,6 @@ export const ShopService = {
   getAllShops,
   createShop,
   updateShop,
+  deleteShop,
   getShopByOwnerId,
 };

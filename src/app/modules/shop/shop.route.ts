@@ -49,4 +49,10 @@ router.put(
   ShopController.updateShop
 );
 
+router.delete(
+  "/:id",
+  auth(USER_ROLE_ENUM.admin, USER_ROLE_ENUM.vendor),
+  ShopController.deleteShop
+);
+
 export const ShopRoutes = router;
