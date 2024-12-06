@@ -234,14 +234,6 @@ const toggleShopBlacklistStatus = async (
 
     throw error;
   }
-
-  const result = await Shop.findByIdAndUpdate(
-    id,
-    { isBlacklisted: isBlacklisted },
-    { new: true }
-  );
-
-  return result;
 };
 
 export const ShopService = {

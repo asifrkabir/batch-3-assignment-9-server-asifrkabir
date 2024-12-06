@@ -94,10 +94,39 @@ const deleteProduct = catchAsync(async (req, res) => {
   });
 });
 
+const getAllProductsForFeed = catchAsync(async (req, res) => {
+  let userId = null;
+
+  if (req.user) {
+    userId = req.user.userId;
+  }
+
+  const result = await ProductService.getAllProductsForFeed(req.query, userId);
+
+  if (result?.result?.length <= 0) {
+    sendResponse(res, {
+      success: false,
+      statusCode: httpStatus.OK,
+      message: "No Data Found",
+      meta: result.meta,
+      data: result?.result,
+    });
+  } else {
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.OK,
+      message: "Products for feed retrieved successfully",
+      meta: result.meta,
+      data: result.result,
+    });
+  }
+});
+
 export const ProductController = {
   getProductById,
   getAllProducts,
   createProduct,
   updateProduct,
   deleteProduct,
+  getAllProductsForFeed,
 };

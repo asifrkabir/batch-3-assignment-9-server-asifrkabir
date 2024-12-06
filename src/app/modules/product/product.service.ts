@@ -1,16 +1,21 @@
 import httpStatus from "http-status";
+import { ClientSession, Types } from "mongoose";
+import QueryBuilder from "../../builder/QueryBuilder";
 import AppError from "../../errors/AppError";
 import { TImageFiles } from "../../interface/image.interface";
+import { getExistingProductCategoryById } from "../productCategory/productCategory.utils";
 import { getExistingShopById } from "../shop/shop.utils";
+import { USER_ROLE_ENUM } from "../user/user.constant";
+import { getExistingUserById } from "../user/user.utils";
+import {
+  PRODUCT_STATUS_ENUM,
+  productSearchableFields,
+  TProductStatus,
+} from "./product.constant";
 import { TProduct } from "./product.interface";
 import { Product } from "./product.model";
-import { getExistingProductCategoryById } from "../productCategory/productCategory.utils";
-import QueryBuilder from "../../builder/QueryBuilder";
-import { productSearchableFields, TProductStatus } from "./product.constant";
 import { getExistingProductById } from "./product.utils";
-import { getExistingUserById } from "../user/user.utils";
-import { USER_ROLE_ENUM } from "../user/user.constant";
-import { ClientSession } from "mongoose";
+import { Follow } from "../follow/follow.model";
 
 const getProductById = async (id: string) => {
   const result = await Product.findOne({ _id: id, isActive: true });
@@ -184,6 +189,132 @@ const toggleAllProductsStatusByShop = async (
   return result.modifiedCount;
 };
 
+const getAllProductsForFeed = async (
+  query: Record<string, unknown>,
+  userId?: string
+) => {
+  let followedShopIds: Types.ObjectId[] = [];
+
+  if (userId) {
+    const follows = await Follow.find({ follower: userId }).select("shop");
+    followedShopIds = follows.map((follow) => new Types.ObjectId(follow.shop));
+  }
+
+  const filterQuery = { ...query };
+  const excludeFields = ["searchTerm", "sort", "limit", "page", "fields"];
+  excludeFields.forEach((field) => delete filterQuery[field]);
+
+  const matchConditions: Record<string, unknown> = {
+    isActive: true,
+    status: PRODUCT_STATUS_ENUM.AVAILABLE,
+  };
+
+  if (filterQuery.name) {
+    matchConditions.name = filterQuery.name as string;
+  }
+
+  if (filterQuery.category) {
+    matchConditions.category = new Types.ObjectId(
+      filterQuery.category as string
+    );
+  }
+
+  if (filterQuery.shop) {
+    matchConditions.shop = new Types.ObjectId(filterQuery.shop as string);
+  }
+
+  if (filterQuery.priceMin || filterQuery.priceMax) {
+    matchConditions.price = matchConditions.price || {};
+    if (filterQuery.priceMin) {
+      (matchConditions.price as Record<string, number>).$gte = Number(
+        filterQuery.priceMin
+      );
+    }
+    if (filterQuery.priceMax) {
+      (matchConditions.price as Record<string, number>).$lte = Number(
+        filterQuery.priceMax
+      );
+    }
+  }
+
+  let productQuery = Product.aggregate([
+    {
+      $match: matchConditions,
+    },
+    {
+      $lookup: {
+        from: "shops",
+        localField: "shop",
+        foreignField: "_id",
+        as: "shop",
+      },
+    },
+    {
+      $lookup: {
+        from: "productcategories",
+        localField: "category",
+        foreignField: "_id",
+        as: "category",
+      },
+    },
+    // Add a temporary field 'isFollowed' to prioritize followed shops
+    {
+      $addFields: {
+        isFollowed: {
+          $cond: {
+            if: {
+              $in: [{ $arrayElemAt: ["$shop._id", 0] }, followedShopIds],
+            },
+            then: 1,
+            else: 0,
+          },
+        },
+      },
+    },
+    {
+      $sort: {
+        isFollowed: -1,
+        createdAt: -1,
+      },
+    },
+    {
+      $project: {
+        isFollowed: 0, // Remove the 'isFollowed' field from the result
+      },
+    },
+  ]);
+
+  // Search
+  if (query.searchTerm) {
+    productQuery = productQuery.match({
+      $or: productSearchableFields.map((field: string) => ({
+        [field]: { $regex: query.searchTerm, $options: "i" },
+      })),
+    });
+  }
+
+  // Pagination
+  const page = Number(query.page) || 1;
+  const limit = Number(query.limit) || 10;
+  const skip = (page - 1) * limit;
+  productQuery = productQuery.skip(skip).limit(limit);
+
+  const result = await productQuery;
+
+  const total = await Product.countDocuments({
+    isActive: true,
+    status: PRODUCT_STATUS_ENUM.AVAILABLE,
+    ...matchConditions,
+  });
+
+  const totalPage = Math.ceil(total / limit);
+
+  return {
+    meta: { total, page, limit, totalPage },
+    result,
+  };
+};
+
 export const ProductService = {
   getProductById,
   getAllProducts,
@@ -192,4 +323,5 @@ export const ProductService = {
   deleteProduct,
   deleteProductsByFilter,
   toggleAllProductsStatusByShop,
+  getAllProductsForFeed,
 };

@@ -8,8 +8,11 @@ import { ImageFilesArrayZodSchema } from "../../zod/image.validation";
 import { USER_ROLE_ENUM } from "../user/user.constant";
 import { ProductController } from "./product.controller";
 import { ProductValidations } from "./product.validation";
+import optionalAuth from "../../middlewares/optionalAuth";
 
 const router = Router();
+
+router.get("/feed", optionalAuth(), ProductController.getAllProductsForFeed);
 
 router.get(
   "/:id",
@@ -19,7 +22,7 @@ router.get(
 
 router.get(
   "/",
-  auth(USER_ROLE_ENUM.admin, USER_ROLE_ENUM.user, USER_ROLE_ENUM.vendor),
+  auth(USER_ROLE_ENUM.admin, USER_ROLE_ENUM.vendor),
   ProductController.getAllProducts
 );
 
