@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { ClientSession } from "mongoose";
 import { TOrder } from "./order.interface";
 import { getExistingUserById } from "../user/user.utils";
 import AppError from "../../errors/AppError";
@@ -8,11 +8,11 @@ import { getExistingProductById } from "../product/product.utils";
 import { Product } from "../product/product.model";
 import { Order } from "./order.model";
 import QueryBuilder from "../../builder/QueryBuilder";
-import { orderSearchableFields } from "./order.constant";
+import { ORDER_STATUS_ENUM, orderSearchableFields } from "./order.constant";
 
 const getAllOrders = async (query: Record<string, unknown>) => {
   const orderQuery = new QueryBuilder(
-    Order.find({ isActive: true }).populate("user shop"),
+    Order.find({ isActive: true }).populate("user shop products.product"),
     query
   )
     .search(orderSearchableFields)
@@ -96,12 +96,19 @@ const createOrder = async (userId: string, payload: TOrder) => {
       payload.discount = Math.max(0, payload.discount);
     }
 
-    const result = await Order.create([payload], { session });
+    const createdOrders = await Order.create([payload], { session });
+
+    if (!createdOrders || createdOrders.length === 0) {
+      throw new AppError(
+        httpStatus.INTERNAL_SERVER_ERROR,
+        "Failed to create order"
+      );
+    }
 
     await session.commitTransaction();
     await session.endSession();
 
-    return result;
+    return createdOrders[0];
   } catch (error) {
     await session.abortTransaction();
     await session.endSession();
@@ -110,7 +117,26 @@ const createOrder = async (userId: string, payload: TOrder) => {
   }
 };
 
+const updateOrderAfterPayment = async (
+  orderId: string,
+  paymentId: string,
+  session?: ClientSession
+) => {
+  const result = await Order.findByIdAndUpdate(
+    orderId,
+    { payment: paymentId, status: ORDER_STATUS_ENUM.COMPLETE },
+    { session }
+  );
+
+  if (!result) {
+    return null;
+  }
+
+  return result;
+};
+
 export const OrderService = {
   getAllOrders,
   createOrder,
+  updateOrderAfterPayment,
 };
