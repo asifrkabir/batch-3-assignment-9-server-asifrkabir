@@ -7,6 +7,28 @@ import { getExistingShopById } from "../shop/shop.utils";
 import { getExistingProductById } from "../product/product.utils";
 import { Product } from "../product/product.model";
 import { Order } from "./order.model";
+import QueryBuilder from "../../builder/QueryBuilder";
+import { orderSearchableFields } from "./order.constant";
+
+const getAllOrders = async (query: Record<string, unknown>) => {
+  const orderQuery = new QueryBuilder(
+    Order.find({ isActive: true }).populate("user shop"),
+    query
+  )
+    .search(orderSearchableFields)
+    .filter()
+    .sort()
+    .paginate()
+    .fields();
+
+  const result = await orderQuery.modelQuery;
+  const meta = await orderQuery.countTotal();
+
+  return {
+    meta,
+    result,
+  };
+};
 
 const createOrder = async (userId: string, payload: TOrder) => {
   const existingUser = await getExistingUserById(userId);
@@ -89,5 +111,6 @@ const createOrder = async (userId: string, payload: TOrder) => {
 };
 
 export const OrderService = {
+  getAllOrders,
   createOrder,
 };
