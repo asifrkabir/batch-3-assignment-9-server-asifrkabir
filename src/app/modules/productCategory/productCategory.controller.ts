@@ -3,6 +3,28 @@ import catchAsync from "../../utils/catchAsync";
 import sendResponse from "../../utils/sendResponse";
 import { ProductCategoryService } from "./productCategory.service";
 
+const getProductCategoryById = catchAsync(async (req, res) => {
+  const { id } = req.params;
+
+  const result = await ProductCategoryService.getProductCategoryById(id);
+
+  if (result) {
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Product Category retrieved successfully",
+      data: result,
+    });
+  } else {
+    sendResponse(res, {
+      statusCode: httpStatus.NOT_FOUND,
+      success: false,
+      message: "No Data Found",
+      data: result,
+    });
+  }
+});
+
 const getAllProductCategories = catchAsync(async (req, res) => {
   const result = await ProductCategoryService.getAllProductCategories(
     req.query
@@ -68,6 +90,7 @@ const deleteProductCategory = catchAsync(async (req, res) => {
 });
 
 export const ProductCategoryController = {
+  getProductCategoryById,
   getAllProductCategories,
   createProductCategory,
   updateProductCategory,

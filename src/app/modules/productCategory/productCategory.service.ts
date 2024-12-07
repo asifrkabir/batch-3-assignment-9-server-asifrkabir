@@ -8,6 +8,12 @@ import { getExistingProductCategoryById } from "./productCategory.utils";
 import mongoose from "mongoose";
 import { ProductService } from "../product/product.service";
 
+const getProductCategoryById = async (id: string) => {
+  const result = await ProductCategory.findOne({ _id: id, isActive: true });
+
+  return result;
+};
+
 const getAllProductCategories = async (query: Record<string, unknown>) => {
   const productCategoryQuery = new QueryBuilder(
     ProductCategory.find({ isActive: true }),
@@ -102,6 +108,7 @@ const deleteProductCategory = async (id: string) => {
 };
 
 export const ProductCategoryService = {
+  getProductCategoryById,
   getAllProductCategories,
   createProductCategory,
   updateProductCategory,
