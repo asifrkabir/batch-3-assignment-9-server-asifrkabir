@@ -3,6 +3,28 @@ import catchAsync from "../../utils/catchAsync";
 import sendResponse from "../../utils/sendResponse";
 import { OrderService } from "./order.service";
 
+const getOrderById = catchAsync(async (req, res) => {
+  const { id } = req.params;
+
+  const result = await OrderService.getOrderById(id);
+
+  if (result) {
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Order retrieved successfully",
+      data: result,
+    });
+  } else {
+    sendResponse(res, {
+      statusCode: httpStatus.NOT_FOUND,
+      success: false,
+      message: "No Data Found",
+      data: result,
+    });
+  }
+});
+
 const getAllOrders = catchAsync(async (req, res) => {
   const result = await OrderService.getAllOrders(req.query);
 
@@ -39,6 +61,7 @@ const createOrder = catchAsync(async (req, res) => {
 });
 
 export const OrderController = {
+  getOrderById,
   getAllOrders,
   createOrder,
 };
