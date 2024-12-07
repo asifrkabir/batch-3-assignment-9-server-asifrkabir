@@ -25,7 +25,10 @@ const createPaymentIntent = async (amount: number) => {
 
 const getAllPayments = async (query: Record<string, unknown>) => {
   const paymentQuery = new QueryBuilder(
-    Payment.find().populate("user order"),
+    Payment.find().populate([
+      { path: "user" },
+      { path: "order", populate: { path: "shop" } }
+    ]),
     query
   )
     .filter()
