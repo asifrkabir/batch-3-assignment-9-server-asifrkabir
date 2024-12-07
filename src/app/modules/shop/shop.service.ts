@@ -19,7 +19,7 @@ const getShopById = async (id: string) => {
 };
 
 const getAllShops = async (query: Record<string, unknown>) => {
-  const postQuery = new QueryBuilder(Shop.find({ isActive: true }), query)
+  const postQuery = new QueryBuilder(Shop.find({ isActive: true }).populate("owner"), query)
     .search(shopSearchableFields)
     .filter()
     .sort()
