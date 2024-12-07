@@ -282,6 +282,18 @@ const getAllProductsForFeed = async (
         isFollowed: 0, // Remove the 'isFollowed' field from the result
       },
     },
+    {
+      $unwind: {
+        path: "$shop",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $unwind: {
+        path: "$category",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
   ]);
 
   // Search
