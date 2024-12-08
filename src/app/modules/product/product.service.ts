@@ -100,7 +100,7 @@ const updateProduct = async (
 
   if (
     existingUser.role === USER_ROLE_ENUM.vendor &&
-    existingShop.owner !== existingUser._id
+    existingShop.owner._id.toString() !== existingUser._id.toString()
   ) {
     throw new AppError(
       httpStatus.FORBIDDEN,
