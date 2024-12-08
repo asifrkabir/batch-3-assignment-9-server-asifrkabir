@@ -11,7 +11,11 @@ router.post(
   PaymentController.createPaymentIntent
 );
 
-router.get("/", auth(USER_ROLE_ENUM.admin), PaymentController.getAllPayments);
+router.get(
+  "/",
+  auth(USER_ROLE_ENUM.admin, USER_ROLE_ENUM.vendor),
+  PaymentController.getAllPayments
+);
 
 router.post(
   "/",

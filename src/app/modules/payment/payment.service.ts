@@ -9,6 +9,7 @@ import { getExistingUserById } from "../user/user.utils";
 import { TPayment } from "./payment.interface";
 import { Payment } from "./payment.model";
 import { OrderService } from "../order/order.service";
+import { getExistingShopById } from "../shop/shop.utils";
 
 const stripe = new Stripe(config.stripe_secret_key!, {
   apiVersion: "2024-06-20",
@@ -27,7 +28,8 @@ const getAllPayments = async (query: Record<string, unknown>) => {
   const paymentQuery = new QueryBuilder(
     Payment.find().populate([
       { path: "user" },
-      { path: "order", populate: { path: "shop" } }
+      { path: "order" },
+      { path: "shop" },
     ]),
     query
   )
@@ -56,6 +58,12 @@ const createPayment = async (userId: string, payload: TPayment) => {
 
   if (!existingOrder) {
     throw new AppError(httpStatus.NOT_FOUND, "Order not found");
+  }
+
+  const existingShop = await getExistingShopById(payload.shop.toString());
+
+  if (!existingShop) {
+    throw new AppError(httpStatus.NOT_FOUND, "Shop not found");
   }
 
   payload.user = existingUser._id;
