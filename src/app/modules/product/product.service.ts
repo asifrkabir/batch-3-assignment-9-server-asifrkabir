@@ -219,6 +219,10 @@ const getAllProductsForFeed = async (
     );
   }
 
+  if (filterQuery.onSale) {
+    matchConditions.onSale = (filterQuery.onSale === "true") as boolean;
+  }
+
   if (filterQuery.shop) {
     matchConditions.shop = new Types.ObjectId(filterQuery.shop as string);
   }
