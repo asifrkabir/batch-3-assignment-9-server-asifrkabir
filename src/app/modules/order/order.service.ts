@@ -11,7 +11,11 @@ import QueryBuilder from "../../builder/QueryBuilder";
 import { ORDER_STATUS_ENUM, orderSearchableFields } from "./order.constant";
 
 const getOrderById = async (id: string) => {
-  const result = await Order.findOne({ _id: id, isActive: true }).populate([
+  const result = await Order.findOne({
+    _id: id,
+    status: "complete",
+    isActive: true,
+  }).populate([
     {
       path: "products",
       populate: { path: "product" },
@@ -23,7 +27,9 @@ const getOrderById = async (id: string) => {
 
 const getAllOrders = async (query: Record<string, unknown>) => {
   const orderQuery = new QueryBuilder(
-    Order.find({ isActive: true }).populate("user shop products.product"),
+    Order.find({ isActive: true, status: "complete" }).populate(
+      "user shop products.product"
+    ),
     query
   )
     .search(orderSearchableFields)
