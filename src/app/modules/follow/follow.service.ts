@@ -4,8 +4,9 @@ import { getExistingUserById } from "../user/user.utils";
 import { Follow } from "./follow.model";
 import { TFollow } from "./follow.interface";
 import QueryBuilder from "../../builder/QueryBuilder";
-import { ClientSession } from "mongoose";
+import mongoose, { ClientSession } from "mongoose";
 import { getExistingShopById } from "../shop/shop.utils";
+import { Shop } from "../shop/shop.model";
 
 const getAllFollows = async (query: Record<string, unknown>) => {
   const followQuery = new QueryBuilder(
@@ -51,14 +52,45 @@ const follow = async (followerId: string, shopId: string) => {
     );
   }
 
-  const payload: TFollow = {
-    follower: follower._id,
-    shop: shop._id,
-  };
+  const session = await mongoose.startSession();
 
-  const result = await Follow.create(payload);
+  try {
+    session.startTransaction();
 
-  return result;
+    const payload: TFollow = {
+      follower: follower._id,
+      shop: shop._id,
+    };
+
+    const createdFollow = await Follow.create([payload], { session });
+
+    if (!createdFollow || createdFollow.length === 0) {
+      throw new AppError(httpStatus.INTERNAL_SERVER_ERROR, "Failed to follow");
+    }
+
+    const updatedShop = await Shop.findByIdAndUpdate(
+      shop._id,
+      { $inc: { followerCount: 1 } },
+      { session }
+    );
+
+    if (!updatedShop) {
+      throw new AppError(
+        httpStatus.INTERNAL_SERVER_ERROR,
+        "Failed to update follower count"
+      );
+    }
+
+    await session.commitTransaction();
+    await session.endSession();
+
+    return createdFollow[0];
+  } catch (error) {
+    await session.abortTransaction();
+    await session.endSession();
+
+    throw error;
+  }
 };
 
 const unfollow = async (followerId: string, shopId: string) => {
@@ -86,9 +118,42 @@ const unfollow = async (followerId: string, shopId: string) => {
     );
   }
 
-  const result = await Follow.findByIdAndDelete(existingFollow._id);
+  const session = await mongoose.startSession();
 
-  return result;
+  try {
+    session.startTransaction();
+
+    const deletedFollow = await Follow.findByIdAndDelete(existingFollow._id, {
+      session,
+    });
+
+    if (!deletedFollow) {
+      throw new AppError(httpStatus.BAD_REQUEST, "Failed to unfollow");
+    }
+
+    const updatedShop = await Shop.findByIdAndUpdate(
+      shop._id,
+      { $inc: { followerCount: -1 } },
+      { session }
+    );
+
+    if (!updatedShop) {
+      throw new AppError(
+        httpStatus.INTERNAL_SERVER_ERROR,
+        "Failed to update follower count"
+      );
+    }
+
+    await session.commitTransaction();
+    await session.endSession();
+
+    return deletedFollow;
+  } catch (error) {
+    await session.abortTransaction();
+    await session.endSession();
+
+    throw error;
+  }
 };
 
 const deleteAllFollows = async (
