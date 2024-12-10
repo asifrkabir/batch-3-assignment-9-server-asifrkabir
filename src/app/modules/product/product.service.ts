@@ -19,7 +19,7 @@ import { Follow } from "../follow/follow.model";
 
 const getProductById = async (id: string) => {
   const result = await Product.findOne({ _id: id, isActive: true }).populate(
-    "shop"
+    "shop category"
   );
 
   return result;
