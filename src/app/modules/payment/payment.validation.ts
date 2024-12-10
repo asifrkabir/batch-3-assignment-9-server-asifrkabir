@@ -9,6 +9,12 @@ const createPostValidationSchema = z.object({
         invalid_type_error: "Order ID must be a valid string",
       })
       .min(1, { message: "Order is required" }),
+    shop: z
+      .string({
+        required_error: "Shop is required",
+        invalid_type_error: "Shop ID must be a valid string",
+      })
+      .min(1, { message: "Shop is required" }),
     amount: z
       .number({
         required_error: "Amount is required",
