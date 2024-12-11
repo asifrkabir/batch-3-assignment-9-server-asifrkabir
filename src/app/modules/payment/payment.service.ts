@@ -16,8 +16,9 @@ const stripe = new Stripe(config.stripe_secret_key!, {
 });
 
 const createPaymentIntent = async (amount: number) => {
+  const roundedAmount = Math.round(amount * 100);
   const paymentIntent = await stripe.paymentIntents.create({
-    amount: amount * 100,
+    amount: roundedAmount,
     currency: "usd",
     payment_method_types: ["card"],
   });
