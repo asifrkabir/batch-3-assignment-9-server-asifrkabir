@@ -23,4 +23,10 @@ router.post(
   PaymentController.createPayment
 );
 
+router.get(
+  "/total-revenue",
+  auth(USER_ROLE_ENUM.admin, USER_ROLE_ENUM.vendor),
+  PaymentController.getTotalRevenue
+);
+
 export const PaymentRoutes = router;

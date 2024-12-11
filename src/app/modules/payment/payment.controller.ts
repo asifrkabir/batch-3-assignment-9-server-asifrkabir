@@ -54,8 +54,29 @@ const createPayment = catchAsync(async (req, res) => {
   });
 });
 
+const getTotalRevenue = catchAsync(async (req, res) => {
+  const result = await PaymentService.getTotalRevenue(req.query);
+
+  if (result?.result?.length <= 0) {
+    sendResponse(res, {
+      success: false,
+      statusCode: httpStatus.OK,
+      message: "No Data Found",
+      data: result,
+    });
+  } else {
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.OK,
+      message: "Total revenue retrieved successfully",
+      data: result,
+    });
+  }
+});
+
 export const PaymentController = {
   createPaymentIntent,
   getAllPayments,
   createPayment,
+  getTotalRevenue,
 };

@@ -1,5 +1,5 @@
 import httpStatus from "http-status";
-import mongoose from "mongoose";
+import mongoose, { Types } from "mongoose";
 import Stripe from "stripe";
 import QueryBuilder from "../../builder/QueryBuilder";
 import config from "../../config";
@@ -107,8 +107,26 @@ const createPayment = async (userId: string, payload: TPayment) => {
   }
 };
 
+const getTotalRevenue = async (query: Record<string, unknown>) => {
+  query.status = "successful";
+
+  if (query.shop) {
+    query.shop = new Types.ObjectId(query.shop as string);
+  }
+
+  const revenueData = await Payment.aggregate([
+    { $match: query },
+    { $group: { _id: null, totalRevenue: { $sum: "$amount" } } },
+  ]);
+
+  const totalRevenue = revenueData.length > 0 ? revenueData[0].totalRevenue : 0;
+
+  return totalRevenue;
+};
+
 export const PaymentService = {
   createPaymentIntent,
   getAllPayments,
   createPayment,
+  getTotalRevenue,
 };
