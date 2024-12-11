@@ -1,4 +1,4 @@
-import mongoose, { ClientSession } from "mongoose";
+import mongoose, { ClientSession, Types } from "mongoose";
 import { TOrder } from "./order.interface";
 import { getExistingUserById } from "../user/user.utils";
 import AppError from "../../errors/AppError";
@@ -152,9 +152,28 @@ const updateOrderAfterPayment = async (
   return result;
 };
 
+const getTotalOrders = async (query: Record<string, unknown>) => {
+  query.isActive = true;
+  query.status = "complete";
+
+  if (query.shop) {
+    query.shop = new Types.ObjectId(query.shop as string);
+  }
+
+  const orderData = await Order.aggregate([
+    { $match: query },
+    { $count: "totalOrders" },
+  ]);
+
+  const totalOrders = orderData.length > 0 ? orderData[0].totalOrders : 0;
+
+  return totalOrders;
+};
+
 export const OrderService = {
   getOrderById,
   getAllOrders,
   createOrder,
   updateOrderAfterPayment,
+  getTotalOrders,
 };

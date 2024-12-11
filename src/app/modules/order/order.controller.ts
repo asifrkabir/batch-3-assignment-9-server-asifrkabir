@@ -60,8 +60,29 @@ const createOrder = catchAsync(async (req, res) => {
   });
 });
 
+const getTotalOrders = catchAsync(async (req, res) => {
+  const result = await OrderService.getTotalOrders(req.query);
+
+  if (result?.result?.length <= 0) {
+    sendResponse(res, {
+      success: false,
+      statusCode: httpStatus.OK,
+      message: "No Data Found",
+      data: result,
+    });
+  } else {
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.OK,
+      message: "Total orders retrieved successfully",
+      data: result,
+    });
+  }
+});
+
 export const OrderController = {
   getOrderById,
   getAllOrders,
   createOrder,
+  getTotalOrders,
 };
