@@ -10,7 +10,7 @@ import { getExistingUserById } from "../user/user.utils";
 
 const getAllReviews = async (query: Record<string, unknown>) => {
   const reviewQuery = new QueryBuilder(
-    Review.find({ isActive: true }).populate("user"),
+    Review.find({ isActive: true }).populate("user product"),
     query
   )
     .filter()
