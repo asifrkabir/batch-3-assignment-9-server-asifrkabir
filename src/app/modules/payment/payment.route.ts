@@ -5,10 +5,10 @@ import { USER_ROLE_ENUM } from "../user/user.constant";
 
 const router = Router();
 
-router.post(
-  "/create-payment-intent",
-  auth(USER_ROLE_ENUM.admin, USER_ROLE_ENUM.user),
-  PaymentController.createPaymentIntent
+router.get(
+  "/total-revenue",
+  auth(USER_ROLE_ENUM.admin, USER_ROLE_ENUM.vendor),
+  PaymentController.getTotalRevenue
 );
 
 router.get(
@@ -18,15 +18,15 @@ router.get(
 );
 
 router.post(
+  "/create-payment-intent",
+  auth(USER_ROLE_ENUM.admin, USER_ROLE_ENUM.user),
+  PaymentController.createPaymentIntent
+);
+
+router.post(
   "/",
   auth(USER_ROLE_ENUM.admin, USER_ROLE_ENUM.user),
   PaymentController.createPayment
-);
-
-router.get(
-  "/total-revenue",
-  auth(USER_ROLE_ENUM.admin, USER_ROLE_ENUM.vendor),
-  PaymentController.getTotalRevenue
 );
 
 export const PaymentRoutes = router;
