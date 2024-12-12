@@ -263,7 +263,6 @@ const getAllProductsForFeed = async (
         as: "category",
       },
     },
-    // Add a temporary field 'isFollowed' to prioritize followed shops
     {
       $addFields: {
         isFollowed: {
@@ -285,7 +284,7 @@ const getAllProductsForFeed = async (
     },
     {
       $project: {
-        isFollowed: 0, // Remove the 'isFollowed' field from the result
+        isFollowed: 0,
       },
     },
     {
@@ -302,7 +301,6 @@ const getAllProductsForFeed = async (
     },
   ]);
 
-  // Search
   if (query.searchTerm) {
     productQuery = productQuery.match({
       $or: productSearchableFields.map((field: string) => ({
@@ -311,7 +309,6 @@ const getAllProductsForFeed = async (
     });
   }
 
-  // Pagination
   const page = Number(query.page) || 1;
   const limit = Number(query.limit) || 10;
   const skip = (page - 1) * limit;

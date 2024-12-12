@@ -19,13 +19,13 @@ router.get(
 
 router.post(
   "/create-payment-intent",
-  auth(USER_ROLE_ENUM.admin, USER_ROLE_ENUM.user),
+  auth(USER_ROLE_ENUM.admin, USER_ROLE_ENUM.user, USER_ROLE_ENUM.vendor),
   PaymentController.createPaymentIntent
 );
 
 router.post(
   "/",
-  auth(USER_ROLE_ENUM.admin, USER_ROLE_ENUM.user),
+  auth(USER_ROLE_ENUM.admin, USER_ROLE_ENUM.user, USER_ROLE_ENUM.vendor),
   PaymentController.createPayment
 );
 
