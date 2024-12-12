@@ -14,6 +14,12 @@ router.get(
 );
 
 router.get(
+  "/weekly-sales",
+  auth(USER_ROLE_ENUM.admin, USER_ROLE_ENUM.vendor),
+  OrderController.getWeeklySales
+);
+
+router.get(
   "/:id",
   auth(USER_ROLE_ENUM.admin, USER_ROLE_ENUM.user, USER_ROLE_ENUM.vendor),
   OrderController.getOrderById

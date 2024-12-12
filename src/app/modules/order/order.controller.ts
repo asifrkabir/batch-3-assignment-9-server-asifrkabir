@@ -80,9 +80,30 @@ const getTotalOrders = catchAsync(async (req, res) => {
   }
 });
 
+const getWeeklySales = catchAsync(async (req, res) => {
+  const result = await OrderService.getWeeklySales(req.query);
+
+  if (result.length <= 0) {
+    sendResponse(res, {
+      success: false,
+      statusCode: httpStatus.OK,
+      message: "No Data Found",
+      data: result,
+    });
+  } else {
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.OK,
+      message: "Weekly sales retrieved successfully",
+      data: result,
+    });
+  }
+});
+
 export const OrderController = {
   getOrderById,
   getAllOrders,
   createOrder,
   getTotalOrders,
+  getWeeklySales,
 };

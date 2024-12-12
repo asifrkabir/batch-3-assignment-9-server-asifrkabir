@@ -170,10 +170,75 @@ const getTotalOrders = async (query: Record<string, unknown>) => {
   return totalOrders;
 };
 
+const getWeeklySales = async (query: Record<string, unknown>) => {
+  query.isActive = true;
+  query.status = "complete";
+
+  if (query.shop) {
+    query.shop = new Types.ObjectId(query.shop as string);
+  }
+
+  const now = new Date();
+  const currentMonth = now.getMonth();
+  const currentYear = now.getFullYear();
+
+  const startOfMonth = new Date(currentYear, currentMonth, 1);
+  const startOfNextMonth =
+    currentMonth === 11
+      ? new Date(currentYear + 1, 0, 1)
+      : new Date(currentYear, currentMonth + 1, 1);
+
+  const orderData = await Order.aggregate([
+    {
+      $match: {
+        ...query,
+        createdAt: {
+          $gte: startOfMonth,
+          $lt: startOfNextMonth,
+        },
+      },
+    },
+    {
+      $group: {
+        _id: {
+          week: { $week: "$createdAt" },
+        },
+        totalOrders: { $sum: 1 },
+      },
+    },
+    {
+      $sort: { "_id.week": 1 },
+    },
+    {
+      $project: {
+        week: "$_id.week",
+        totalOrders: 1,
+        _id: 0,
+      },
+    },
+  ]);
+
+  const weeksInMonth = Array.from({ length: 5 }, (_, index) => ({
+    week: `Week ${index + 1}`,
+    totalOrders: 0,
+  }));
+
+  for (const data of orderData) {
+    const firstWeek = orderData[0]?.week || 0;
+    const weekIndex = data.week - firstWeek;
+    if (weekIndex >= 0 && weekIndex < weeksInMonth.length) {
+      weeksInMonth[weekIndex].totalOrders = data.totalOrders;
+    }
+  }
+
+  return weeksInMonth;
+};
+
 export const OrderService = {
   getOrderById,
   getAllOrders,
   createOrder,
   updateOrderAfterPayment,
   getTotalOrders,
+  getWeeklySales,
 };
