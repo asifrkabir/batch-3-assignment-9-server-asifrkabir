@@ -26,6 +26,10 @@ const userSchema = new Schema<TUser>(
     profilePicture: {
       type: String,
     },
+    isSuspended: {
+      type: Boolean,
+      default: false,
+    },
     isActive: {
       type: Boolean,
       default: true,

@@ -165,6 +165,22 @@ const deleteUser = async (id: string) => {
   }
 };
 
+const toggleUserSuspend = async (id: string, payload: Partial<TUser>) => {
+  const existingUser = await getExistingUserById(id);
+
+  if (!existingUser) {
+    throw new AppError(httpStatus.NOT_FOUND, "User not found");
+  }
+
+  const result = await User.findOneAndUpdate({ _id: id }, payload, {
+    new: true,
+  });
+
+  (result as Partial<TUser>).password = undefined;
+
+  return result;
+};
+
 const getTotalUsers = async (query: Record<string, unknown>) => {
   query.isActive = true;
 
@@ -184,5 +200,6 @@ export const UserService = {
   createUser,
   updateUser,
   deleteUser,
+  toggleUserSuspend,
   getTotalUsers,
 };

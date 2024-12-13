@@ -22,6 +22,13 @@ const loginUser = async (payload: TLoginUser) => {
     throw new AppError(httpStatus.BAD_REQUEST, "User not found");
   }
 
+  if (existingUser.isSuspended) {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      "Your account is currently suspended"
+    );
+  }
+
   if (!(await isPasswordValid(password, existingUser?.password))) {
     throw new AppError(httpStatus.FORBIDDEN, "Password is incorrect");
   }

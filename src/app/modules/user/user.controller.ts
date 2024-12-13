@@ -92,6 +92,19 @@ const deleteUser = catchAsync(async (req, res) => {
   });
 });
 
+const toggleUserSuspend = catchAsync(async (req, res) => {
+  const { id } = req.params;
+
+  const result = await UserService.toggleUserSuspend(id, req.body);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "User status updated successfully",
+    data: result,
+  });
+});
+
 const getTotalUsers = catchAsync(async (req, res) => {
   const result = await UserService.getTotalUsers(req.query);
 
@@ -118,5 +131,6 @@ export const UserController = {
   createUser,
   updateUser,
   deleteUser,
+  toggleUserSuspend,
   getTotalUsers,
 };
