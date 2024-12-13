@@ -7,16 +7,19 @@ import { ReviewValidations } from "./review.validation";
 
 const router = Router();
 
-router.get(
-  "/",
-  ReviewController.getAllReviews
-);
+router.get("/", ReviewController.getAllReviews);
 
 router.post(
   "/",
   auth(USER_ROLE_ENUM.admin, USER_ROLE_ENUM.user, USER_ROLE_ENUM.vendor),
   validateRequest(ReviewValidations.createReviewValidationSchema),
   ReviewController.createReview
+);
+
+router.delete(
+  "/:id",
+  auth(USER_ROLE_ENUM.admin),
+  ReviewController.deleteReview
 );
 
 export const ReviewRoutes = router;

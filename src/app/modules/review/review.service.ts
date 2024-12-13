@@ -79,7 +79,18 @@ const createReview = async (userId: string, payload: TReview) => {
   return result;
 };
 
+const deleteReview = async (id: string) => {
+  const result = await Review.findByIdAndUpdate(
+    id,
+    { isActive: false },
+    { new: true }
+  );
+
+  return result;
+};
+
 export const ReviewService = {
   getAllReviews,
   createReview,
+  deleteReview,
 };
