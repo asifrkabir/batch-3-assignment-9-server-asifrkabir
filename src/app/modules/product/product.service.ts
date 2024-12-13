@@ -282,11 +282,11 @@ const getAllProductsForFeed = async (
         createdAt: -1,
       },
     },
-    {
-      $project: {
-        isFollowed: 0,
-      },
-    },
+    // {
+    //   $project: {
+    //     isFollowed: 0,
+    //   },
+    // },
     {
       $unwind: {
         path: "$shop",
