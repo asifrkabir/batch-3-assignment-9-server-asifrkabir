@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /* eslint-disable  no-unsafe-optional-chaining */
 import httpStatus from "http-status";
 import { JwtPayload } from "jsonwebtoken";
@@ -10,7 +11,7 @@ import {
   getExistingUserByEmail,
   getExistingUserById,
 } from "../user/user.utils";
-import { TLoginUser } from "./auth.interface";
+import { TLoginUser, TResetPasswordRequest } from "./auth.interface";
 import { createToken, isPasswordValid, verifyToken } from "./auth.utils";
 
 const loginUser = async (payload: TLoginUser) => {
@@ -114,8 +115,10 @@ const refreshToken = async (refreshToken: string) => {
   return { accessToken };
 };
 
-const forgotPassword = async (userId: string) => {
-  const existingUser = await getExistingUserById(userId);
+const forgotPassword = async (payload: TResetPasswordRequest) => {
+  const { email } = payload;
+
+  const existingUser = await getExistingUserByEmail(email);
 
   if (!existingUser) {
     throw new AppError(httpStatus.NOT_FOUND, "User not found");
@@ -125,15 +128,22 @@ const forgotPassword = async (userId: string) => {
 
   const resetToken = createToken(
     jwtPayload,
-    config.jwt_access_secret as string,
+    config.jwt_reset_secret as string,
     "10m"
   );
 
-  const resetUILink = `${config.client_url}?id=${existingUser.id}&token=${resetToken}`;
+  const resetUILink = `${config.client_url}/reset-password?id=${existingUser.id}&token=${encodeURIComponent(resetToken)}`;
 
-  // eslint-disable-next-line no-console
-  console.log(`Sending Email to: ${existingUser?.email}`);
-  sendResetPasswordEmail(existingUser?.email, resetUILink);
+  try {
+    console.log(`Sending Email to: ${existingUser.email}`);
+    await sendResetPasswordEmail(existingUser.email, resetUILink);
+  } catch (error) {
+    console.error("Error sending reset password email:", error);
+    throw new AppError(
+      httpStatus.INTERNAL_SERVER_ERROR,
+      "Failed to send reset password email"
+    );
+  }
 };
 
 const resetPassword = async (
@@ -146,7 +156,7 @@ const resetPassword = async (
     throw new AppError(httpStatus.NOT_FOUND, "User not found");
   }
 
-  const decoded = verifyToken(token, config.jwt_access_secret as string);
+  const decoded = verifyToken(token, config.jwt_reset_secret as string);
 
   const { userId, role } = decoded;
 

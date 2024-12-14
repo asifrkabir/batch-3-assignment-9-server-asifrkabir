@@ -1,42 +1,30 @@
 /* eslint-disable no-console */
-import nodemailer from "nodemailer";
+import sgMail from "@sendgrid/mail";
 import config from "../config";
 
-export const sendResetPasswordEmail = async (to: string, html: string) => {
+// Initialize SendGrid
+sgMail.setApiKey(config.sendgrid_api_key as string);
+
+export const sendResetPasswordEmail = async (to: string, resetLink: string) => {
+  const mailData = {
+    to,
+    from: config.sendgrid_email as string,
+    subject: "Reset Your Password | ShopSphere",
+    html: `
+      <p>Hi,</p>
+      <p>You requested to reset your password for your ShopSphere account.</p>
+      <p>Click the link below to reset your password. This link will expire in 10 minutes:</p>
+      <a href="${resetLink}" target="_blank">${resetLink}</a>
+      <p>If you didn't request this, please ignore this email.</p>
+      <p>Thanks,<br>ShopSphere Team</p>
+    `,
+  };
+
   try {
-    const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 587,
-      secure: config.NODE_ENV === "production", // Use SSL in production
-      auth: {
-        user: config.nodemailer_email,
-        pass: config.nodemailer_password,
-      },
-    });
-
-    await transporter.verify();
-    console.log("SMTP server is ready");
-
-    const mailData = {
-      from: config.nodemailer_email,
-      to,
-      subject: "Reset Password | ShopSphere",
-      text: "Reset your password within 10 minutes.",
-      html,
-    };
-
-    await new Promise((resolve, reject) => {
-      transporter.sendMail(mailData, (err, info) => {
-        if (err) {
-          console.error(err);
-          reject(err);
-        } else {
-          console.log(info);
-          resolve(info);
-        }
-      });
-    });
+    await sgMail.send(mailData);
+    console.log(`Reset password email sent to ${to}`);
   } catch (error) {
-    console.error("Error sending email: ", error);
+    console.error("Error sending reset password email:", error);
+    throw error;
   }
 };
