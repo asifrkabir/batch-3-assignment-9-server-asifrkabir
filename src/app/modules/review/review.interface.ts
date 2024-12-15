@@ -6,5 +6,10 @@ export type TReview = {
   order: Types.ObjectId;
   rating: number;
   comment?: string;
+  reply?: string;
   isActive: boolean;
+};
+
+export type TReplyToReview = {
+  reply: string;
 };

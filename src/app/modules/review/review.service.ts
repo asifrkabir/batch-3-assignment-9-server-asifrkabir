@@ -3,10 +3,11 @@ import QueryBuilder from "../../builder/QueryBuilder";
 import AppError from "../../errors/AppError";
 import { Order } from "../order/order.model";
 import { getExistingProductById } from "../product/product.utils";
-import { TReview } from "./review.interface";
+import { TReplyToReview, TReview } from "./review.interface";
 import { Review } from "./review.model";
 import { ORDER_STATUS_ENUM } from "../order/order.constant";
 import { getExistingUserById } from "../user/user.utils";
+import { getExistingReviewById } from "./review.utils";
 
 const getAllReviews = async (query: Record<string, unknown>) => {
   const reviewQuery = new QueryBuilder(
@@ -89,8 +90,28 @@ const deleteReview = async (id: string) => {
   return result;
 };
 
+const replyToReview = async (id: string, payload: TReplyToReview) => {
+  const existingReview = await getExistingReviewById(id);
+
+  if (!existingReview) {
+    throw new AppError(httpStatus.NOT_FOUND, "Review not found");
+  }
+
+  if (existingReview?.reply) {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      "You have already replied to this review"
+    );
+  }
+
+  const result = await Review.findByIdAndUpdate(id, payload, { new: true });
+
+  return result;
+};
+
 export const ReviewService = {
   getAllReviews,
   createReview,
   deleteReview,
+  replyToReview,
 };

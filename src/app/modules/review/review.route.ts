@@ -22,4 +22,10 @@ router.delete(
   ReviewController.deleteReview
 );
 
+router.patch(
+  "/:id/reply",
+  auth(USER_ROLE_ENUM.admin, USER_ROLE_ENUM.vendor),
+  ReviewController.replyToReview
+);
+
 export const ReviewRoutes = router;

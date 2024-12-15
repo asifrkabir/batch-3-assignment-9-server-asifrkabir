@@ -27,6 +27,9 @@ const reviewSchema = new Schema<TReview>(
     comment: {
       type: String,
     },
+    reply: {
+      type: String,
+    },
     isActive: {
       type: Boolean,
       default: true,

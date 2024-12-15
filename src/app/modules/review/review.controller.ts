@@ -51,8 +51,22 @@ const deleteReview = catchAsync(async (req, res) => {
   });
 });
 
+const replyToReview = catchAsync(async (req, res) => {
+  const { id } = req.params;
+
+  const result = await ReviewService.replyToReview(id, req.body);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Reply added successfully",
+    data: result,
+  });
+});
+
 export const ReviewController = {
   getAllReviews,
   createReview,
   deleteReview,
+  replyToReview,
 };
